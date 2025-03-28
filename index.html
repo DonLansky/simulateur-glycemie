@@ -38,19 +38,25 @@
             </select>
         </div>
         <div class="mb-3">
-            <label class="form-label">Fréquence cardiaque (BPM) <small class="text-muted">40-200 bpm</small></label>
+            <label class="form-label">Fréquence cardiaque (BPM) 
+                <small class="text-muted">(40-200 battements/min)</small>
+            </label>
             <input type="number" class="form-control" id="bpm" required 
                    min="40" max="200" placeholder="Ex: 75">
         </div>
         <div class="mb-3">
-            <label class="form-label">Saturation O₂ (SpO2) <small class="text-muted">70-100%</small></label>
+            <label class="form-label">Saturation O₂ (SpO2) 
+                <small class="text-muted">(70-100%)</small>
+            </label>
             <input type="number" class="form-control" id="spo2" required 
                    min="70" max="100" placeholder="Ex: 98">
         </div>
         <div class="mb-3">
-            <label class="form-label">Temps depuis dernier repas</label>
+            <label class="form-label">Temps depuis dernier repas 
+                <small class="text-muted">(0-24h)</small>
+            </label>
             <select class="form-select" id="jeune" required>
-                <option value="" disabled selected>Sélectionnez une durée</option>
+                <option value="" disabled selected>Sélectionnez la durée</option>
                 <option value="0.5">Moins de 1h</option>
                 <option value="2">1-3h</option>
                 <option value="4">3-5h</option>
@@ -58,7 +64,7 @@
                 <option value="8">+8h (à jeun)</option>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary w-100 mt-3">
+        <button type="submit" class="btn btn-primary w-100">
             <i class="bi bi-calculator"></i> Calculer
         </button>
     </form>
