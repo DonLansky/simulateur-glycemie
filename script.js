@@ -1,95 +1,62 @@
-// Coefficients optimisés pour le Mali (RGPH5)
+// Coefficients ajustés pour ne jamais dépasser 7.2 mmol/L (130 mg/dL)
 const coefficients = {
-    'jeune_actif': [0.025, -0.015, 0.05, 4.5],  // [bpm, spo2, jeune, base]
-    'adulte': [0.03, -0.01, 0.06, 5.0],
-    'senior': [0.035, -0.008, 0.07, 5.2]
+    'jeune_actif': [0.018, -0.012, 0.04, 4.3],
+    'adulte': [0.022, -0.01, 0.05, 4.8],
+    'senior': [0.025, -0.008, 0.06, 5.0]
 };
 
-let currentUnit = 'mmol';
-let currentGlycemie = 0;
-
-function toggleUnits() {
-    currentUnit = currentUnit === 'mmol' ? 'mg' : 'mmol';
-    updateResultDisplay();
-}
-
-function updateResultDisplay() {
-    const valueElement = document.getElementById('resultValue');
-    const unitElement = document.getElementById('unitDisplay');
-    const toggleTextElement = document.getElementById('toggleUnitText');
-    
-    if (currentUnit === 'mmol') {
-        valueElement.textContent = currentGlycemie.toFixed(1);
-        unitElement.textContent = 'mmol/L';
-        toggleTextElement.textContent = 'mg/dL';
-    } else {
-        valueElement.textContent = (currentGlycemie * 18).toFixed(1);
-        unitElement.textContent = 'mg/dL';
-        toggleTextElement.textContent = 'mmol/L';
-    }
-    
-    updateInterpretation();
-}
-
-function updateInterpretation() {
-    const glycemie = currentUnit === 'mmol' ? currentGlycemie : currentGlycemie * 18;
-    const interpretation = getInterpretation(glycemie);
-    const recommendationsHtml = interpretation.recommendations.map(r => `<li>${r}</li>`).join('');
-    
-    document.getElementById('interpretation').innerHTML = `
-        <div class="alert alert-${interpretation.level}">
-            <h4><i class="bi ${interpretation.icon}"></i> ${interpretation.message}</h4>
-            <p>${interpretation.details}</p>
-            <ul class="small">${recommendationsHtml}</ul>
-        </div>
-    `;
-}
-
 function getInterpretation(glycemie) {
-    const value = currentUnit === 'mmol' ? glycemie : glycemie / 18;
+    const mgValue = (glycemie * 18).toFixed(1);
     
-    if (value < 3.9) return {
+    if (glycemie < 3.9) return {
         level: 'danger',
         icon: 'bi-exclamation-triangle',
         message: 'Hypoglycémie possible',
-        details: `Glycémie estimée très basse (${value.toFixed(1)} mmol/L / ${(value*18).toFixed(1)} mg/dL).`,
+        details: `Votre estimation (${glycemie.toFixed(1)} mmol/L | ${mgValue} mg/dL) est en dessous des valeurs normales.`,
         recommendations: [
-            'Consommer 15g de sucre rapide',
-            'Contrôler après 15 minutes',
-            'Consulter si symptômes persistent'
+            'Consommer immédiatement 15g de glucides rapides (jus, sucre)',
+            'Contrôler à nouveau après 15 minutes',
+            'Consulter un médecin si les symptômes persistent',
+            'Éviter les activités risquées (conduite, machines)'
         ]
     };
     
-    if (value <= 5.5) return {
+    if (glycemie <= 5.5) return {
         level: 'success',
         icon: 'bi-check-circle',
         message: 'Glycémie normale',
-        details: `Dans la plage normale (${value.toFixed(1)} mmol/L / ${(value*18).toFixed(1)} mg/dL).`,
+        details: `Votre estimation (${glycemie.toFixed(1)} mmol/L | ${mgValue} mg/dL) se situe dans la plage normale.`,
         recommendations: [
-            'Maintenir habitudes saines',
-            'Activité physique régulière'
+            'Maintenir une alimentation équilibrée',
+            'Pratiquer une activité physique régulière',
+            'Contrôler votre glycémie annuellement',
+            'Boire suffisamment d\'eau'
         ]
     };
     
-    if (value <= 6.9) return {
+    if (glycemie <= 6.9) return {
         level: 'warning',
         icon: 'bi-exclamation-circle',
-        message: 'Pré-diabète possible',
-        details: `Niveau élevé (${value.toFixed(1)} mmol/L / ${(value*18).toFixed(1)} mg/dL).`,
+        message: 'Glycémie élevée',
+        details: `Votre estimation (${glycemie.toFixed(1)} mmol/L | ${mgValue} mg/dL) est au-dessus de la normale.`,
         recommendations: [
-            'Surveiller alimentation',
-            'Consulter un médecin'
+            'Réduire les sucres rapides et graisses saturées',
+            'Augmenter l\'activité physique (30 min/jour)',
+            'Consulter un médecin pour un bilan',
+            'Surveiller régulièrement votre glycémie'
         ]
     };
     
     return {
         level: 'danger',
         icon: 'bi-heart-pulse',
-        message: 'Diabète probable',
-        details: `Niveau très élevé (${value.toFixed(1)} mmol/L / ${(value*18).toFixed(1)} mg/dL).`,
+        message: 'Glycémie très élevée',
+        details: `Votre estimation (${glycemie.toFixed(1)} mmol/L | ${mgValue} mg/dL) nécessite une attention médicale.`,
         recommendations: [
-            'Consultation médicale urgente',
-            'Bilan sanguin complet'
+            'Consultation médicale URGENTE',
+            'Bilan complet (HbA1c, glycémie à jeun)',
+            'Adapter immédiatement votre alimentation',
+            'Éviter tout stress inutile'
         ]
     };
 }
@@ -103,12 +70,39 @@ document.getElementById('glycemieForm').addEventListener('submit', function(e) {
     const profil = document.getElementById('profil').value;
     
     const [a, b, c, d] = coefficients[profil];
-    currentGlycemie = (a * bpm) + (b * spo2) + (c * jeune) + d;
+    let glycemie = (a * bpm) + (b * spo2) + (c * jeune) + d;
+    
+    // Limitation stricte à 7.2 mmol/L (130 mg/dL)
+    glycemie = Math.min(glycemie, 7.2);
+    
+    // Affichage double unité
+    document.getElementById('resultValueMmol').textContent = glycemie.toFixed(1);
+    document.getElementById('resultValueMg').textContent = (glycemie * 18).toFixed(1);
     
     document.getElementById('profilUsed').textContent = 
         document.getElementById('profil').options[document.getElementById('profil').selectedIndex].text;
     
-    updateResultDisplay();
+    // Interprétation et conseils
+    const interpretation = getInterpretation(glycemie);
+    const recommendationsHtml = interpretation.recommendations.map(r => 
+        `<li><i class="bi bi-arrow-right-short"></i> ${r}</li>`
+    ).join('');
+    
+    document.getElementById('interpretation').innerHTML = `
+        <div class="alert alert-${interpretation.level}">
+            <h4><i class="bi ${interpretation.icon}"></i> ${interpretation.message}</h4>
+            <p>${interpretation.details}</p>
+            
+            <p class="mb-1 mt-3"><strong>Conseils :</strong></p>
+            <ul class="advice-list">${recommendationsHtml}</ul>
+            
+            <hr>
+            <small class="text-muted">
+                <i class="bi bi-info-circle"></i> Ces conseils ne remplacent pas un avis médical professionnel.
+            </small>
+        </div>
+    `;
+    
     document.getElementById('resultContainer').classList.remove('d-none');
     document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
 });
