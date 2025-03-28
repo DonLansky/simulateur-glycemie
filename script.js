@@ -1,8 +1,8 @@
 // Coefficients optimisés pour le Mali (RGPH5)
 const coefficients = {
-    'jeune_actif': [0.072, -0.052, 0.11, 4.5],  // [bpm, spo2, jeune, base]
-    'adulte': [0.085, -0.045, 0.14, 5.0],
-    'senior': [0.093, -0.038, 0.17, 5.3]
+    'jeune_actif': [0.025, -0.015, 0.05, 4.5],  // [bpm, spo2, jeune, base]
+    'adulte': [0.03, -0.01, 0.06, 5.0],
+    'senior': [0.035, -0.008, 0.07, 5.2]
 };
 
 let currentUnit = 'mmol';
