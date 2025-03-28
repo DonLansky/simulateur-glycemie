@@ -1,214 +1,83 @@
-<div><br class="Apple-interchange-newline">// Coefficients adaptés pour le Mali const coefficients = { 'jeune_actif': [0.08, -0.06, 4.8], 'adulte': [0.1, -0.05, 5.2], 'senior': [0.12, -0.04, 5.8] }; function getInterpretation(glycemie) { if (glycemie < 3.9) return { level: 'danger', message: 'Hypoglycémie possible', details: 'Une glycémie < 3.9 mmol/L peut indiquer une hypoglycémie. Symptômes possibles : étourdissements, sueurs, confusion. Consommez une source de sucre rapide et consultez un médecin rapidement.', recommendations: [ 'Consommer 15g de sucre rapide (jus, bonbons)', 'Contrôler à nouveau après 15 minutes', 'Consulter un médecin si les symptômes persistent' ] }; if (glycemie <= 5.5) return { level: 'success', message: 'Glycémie normale', details: 'Votre estimation se situe dans la plage normale pour une mesure à jeun (3,9 - 5,5 mmol/L).', recommendations: [ 'Maintenir une alimentation équilibrée', 'Pratiquer une activité physique régulière', 'Faire des bilans sanguins annuels' ] }; if (glycemie <= 6.9) return { level: 'warning', message: 'Pré-diabète possible', details: 'Votre estimation (5,6 - 6,9 mmol/L à jeun) suggère un état de pré-diabète. Cette condition est réversible avec des mesures adaptées.', recommendations: [ 'Consultation médicale recommandée', 'Réduire les sucres rapides et les graisses saturées', 'Augmenter l\'activité physique (30 min/jour)', 'Surveiller régulièrement votre glycémie' ] }; return { level: 'danger', message: 'Diabète probable', details: 'Une estimation ≥ 7,0 mmol/L à jeun peut indiquer un diabète. Un diagnostic médical est nécessaire pour confirmer (test HbA1c ou glycémie à jeun répétée).', recommendations: [ 'Consultation médicale URGENTE', 'Bilan complet (HbA1c, glycémie)', 'Mise en place d\'un suivi médical régulier', 'Adaptation de l\'alimentation et activité physique' ] }; } document.getElementById('glycemieForm').addEventListener('submit', function(e) { e.preventDefault(); const bpm = parseFloat(document.getElementById('bpm').value); const spo2 = parseFloat(document.getElementById('spo2').value); const profil = document.getElementById('profil').value; // Calcul const [a, b, c] = coefficients[profil]; const glycemie = (a * bpm) + (b * spo2) + c; const interpretation = getInterpretation(glycemie); // Affichage document.getElementById('resultValue').textContent = glycemie.toFixed(1); document.getElementById('profilUsed').textContent = profil.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()); // Interprétation médicale const recommendationsHtml = interpretation.recommendations.map(r => `<li>${r}</li>`).join(''); document.getElementById('interpretation').innerHTML = ` <div class="alert alert-${interpretation.level}"> <h4>${interpretation.message} (${glycemie.toFixed(1)} mmol/L)</h4> <p>${interpretation.details}</p> <p class="mb-1"><strong>Valeurs de référence :</strong></p> <ul class="small"> <li>Normal (à jeun) : 3,9 - 5,5 mmol/L</li> <li>Post-prandial (2h après repas) : < 7,8 mmol/L</li> <li>Pré-diabète (à jeun) : 5,6 - 6,9 mmol/L</li> <li>Diabète (à jeun) : ≥ 7,0 mmol/L</li> </ul> <p class="mb-1 mt-2"><strong>Recommandations :</strong></p> <ul>${recommendationsHtml}</ul> <hr> <small class="text-muted">Cette estimation est fournie à titre informatif uniquement et ne remplace pas une consultation médicale.</small> </div> `; document.getElementById('resultContainer').classList.remove('d-none'); document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' }); }); function resetForm() { document.getElementById('glycemieForm').reset(); document.getElementById('resultContainer').classList.add('d-none'); }</div>
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98
-99
-100
-101
-102
-103
-// Coefficients adaptés pour le Mali
 const coefficients = {
-   'jeune_actif': [0.08, -0.06, 4.8],
-   'adulte': [0.1, -0.05, 5.2],
-   'senior': [0.12, -0.04, 5.8]
+    jeune: [0.015, -0.01, 4.2],
+    adulte: [0.018, -0.008, 4.5],
+    senior: [0.02, -0.005, 4.8]
 };
 
+function calculerGlycemie() {
+    // Récupération des valeurs
+    const profil = document.getElementById('profil').value;
+    const bpm = parseFloat(document.getElementById('bpm').value);
+    const spo2 = parseFloat(document.getElementById('spo2').value);
+    
+    // Vérification des entrées
+    if (!profil || !bpm || !spo2) {
+        alert("Veuillez remplir tous les champs!");
+        return;
+    }
 
+    // Calcul
+    const [coeffBpm, coeffSpo2, base] = coefficients[profil];
+    let glycemie = (coeffBpm * bpm) + (coeffSpo2 * spo2) + base;
+    
+    // Limitation à 7.2 mmol/L
+    glycemie = Math.min(glycemie, 7.2);
+    const mgdl = glycemie * 18;
 
-function getInterpretation(glycemie) {
-   if (glycemie < 3.9) return {
-       level: 'danger',
-       message: 'Hypoglycémie possible',
-       details: 'Une glycémie < 3.9 mmol/L peut indiquer une hypoglycémie. Symptômes possibles : étourdissements, sueurs, confusion. Consommez une source de sucre rapide et consultez un médecin rapidement.',
-       recommendations: [
-           'Consommer 15g de sucre rapide (jus, bonbons)',
-           'Contrôler à nouveau après 15 minutes',
-           'Consulter un médecin si les symptômes persistent'
-       ]
-   };
-  
-   if (glycemie <= 5.5) return {
-       level: 'success',
-       message: 'Glycémie normale',
-       details: 'Votre estimation se situe dans la plage normale pour une mesure à jeun (3,9 - 5,5 mmol/L).',
-       recommendations: [
-           'Maintenir une alimentation équilibrée',
-           'Pratiquer une activité physique régulière',
-           'Faire des bilans sanguins annuels'
-       ]
-   };
-  
-   if (glycemie <= 6.9) return {
-       level: 'warning',
-       message: 'Pré-diabète possible',
-       details: 'Votre estimation (5,6 - 6,9 mmol/L à jeun) suggère un état de pré-diabète. Cette condition est réversible avec des mesures adaptées.',
-       recommendations: [
-           'Consultation médicale recommandée',
-           'Réduire les sucres rapides et les graisses saturées',
-           'Augmenter l\'activité physique (30 min/jour)',
-           'Surveiller régulièrement votre glycémie'
-       ]
-   };
-  
-   return {
-       level: 'danger',
-       message: 'Diabète probable',
-       details: 'Une estimation ≥ 7,0 mmol/L à jeun peut indiquer un diabète. Un diagnostic médical est nécessaire pour confirmer (test HbA1c ou glycémie à jeun répétée).',
-       recommendations: [
-           'Consultation médicale URGENTE',
-           'Bilan complet (HbA1c, glycémie)',
-           'Mise en place d\'un suivi médical régulier',
-           'Adaptation de l\'alimentation et activité physique'
-       ]
-   };
+    // Affichage
+    document.getElementById('mmolValue').textContent = glycemie.toFixed(1);
+    document.getElementById('mgValue').textContent = mgdl.toFixed(1);
+    document.getElementById('resultat').classList.remove('hidden');
+    
+    // Génération des conseils
+    genererConseils(glycemie);
 }
 
+function genererConseils(glycemie) {
+    let html = '';
+    if (glycemie < 3.9) {
+        html = `
+            <div class="alert alert-danger">
+                <h5><i class="bi bi-exclamation-triangle"></i> Hypoglycémie</h5>
+                <ul>
+                    <li>Consommer 15g de sucre rapide</li>
+                    <li>Contrôler après 15 minutes</li>
+                    <li>Consulter un médecin si besoin</li>
+                </ul>
+            </div>
+        `;
+    } else if (glycemie <= 5.5) {
+        html = `
+            <div class="alert alert-success">
+                <h5><i class="bi bi-check-circle"></i> Valeur normale</h5>
+                <ul>
+                    <li>Maintenir une alimentation équilibrée</li>
+                    <li>Exercice physique régulier</li>
+                </ul>
+            </div>
+        `;
+    } else {
+        html = `
+            <div class="alert alert-warning">
+                <h5><i class="bi bi-exclamation-circle"></i> Valeur élevée</h5>
+                <ul>
+                    <li>Réduire les sucres rapides</li>
+                    <li>Consulter un médecin</li>
+                    <li>Surveiller régulièrement</li>
+                </ul>
+            </div>
+        `;
+    }
+    document.getElementById('conseils').innerHTML = html;
+}
 
+function reset() {
+    document.getElementById('formGlycemie').reset();
+    document.getElementById('resultat').classList.add('hidden');
+}
 
-document.getElementById('glycemieForm').addEventListener('submit', function(e) {
-   e.preventDefault();
-  
-   const bpm = parseFloat(document.getElementById('bpm').value);
-   const spo2 = parseFloat(document.getElementById('spo2').value);
-   const profil = document.getElementById('profil').value;
-  
-   // Calcul
-   const [a, b, c] = coefficients[profil];
-   const glycemie = (a * bpm) + (b * spo2) + c;
-   const interpretation = getInterpretation(glycemie);
-  
-   // Affichage
-   document.getElementById('resultValue').textContent = glycemie.toFixed(1);
-   document.getElementById('profilUsed').textContent =
-       profil.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-  
-   // Interprétation médicale
-   const recommendationsHtml = interpretation.recommendations.map(r => `<li>${r}</li>`).join('');
-   document.getElementById('interpretation').innerHTML = `
-       <div class="alert alert-${interpretation.level}">
-           <h4>${interpretation.message} (${glycemie.toFixed(1)} mmol/L)</h4>
-           <p>${interpretation.details}</p>
-          
-           <p class="mb-1"><strong>Valeurs de référence :</strong></p>
-           <ul class="small">
-               <li>Normal (à jeun) : 3,9 - 5,5 mmol/L</li>
-               <li>Post-prandial (2h après repas) : < 7,8 mmol/L</li>
-               <li>Pré-diabète (à jeun) : 5,6 - 6,9 mmol/L</li>
-               <li>Diabète (à jeun) : ≥ 7,0 mmol/L</li>
-           </ul>
-          
-           <p class="mb-1 mt-2"><strong>Recommandations :</strong></p>
-           <ul>${recommendationsHtml}</ul>
-          
-           <hr>
-           <small class="text-muted">Cette estimation est fournie à titre informatif uniquement et ne remplace pas une consultation médicale.</small>
-       </div>
-   `;
-  
-   document.getElementById('resultContainer').classList.remove('d-none');
-   document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
+// Événements
+document.getElementById('formGlycemie').addEventListener('submit', function(e) {
+    e.preventDefault();
+    calculerGlycemie();
 });
-
-
-
-function resetForm() {
-   document.getElementById('glycemieForm').reset();
-   document.getElementById('resultContainer').classList.add('d-none');
-}
-
