@@ -1,33 +1,68 @@
-.hidden {
-    display: none !important;
+.disclaimer {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.patent-badge {
+    background: linear-gradient(45deg, #ffd700, #ffec80);
+    color: #000;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 0.5rem;
 }
 
 .card {
-    max-width: 600px;
-    margin: 0 auto;
+    border: none;
     border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
 }
 
-.result-box {
-    border-left: 4px solid #0d6efd;
-    padding-left: 1rem;
+.card:hover {
+    transform: translateY(-2px);
 }
 
-.alert ul {
-    margin-bottom: 0;
-    padding-left: 1.5rem;
+#resultContainer .card-header {
+    background: #28a745;
+    font-size: 1.25rem;
 }
 
-.bi {
-    margin-right: 8px;
+#resultMmol, #resultMg {
+    font-size: 2.5rem;
+    letter-spacing: -1px;
 }
 
-@media (max-width: 576px) {
-    .card-body {
-        padding: 1rem;
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.list-group-item {
+    background: transparent;
+    border-color: rgba(0,0,0,0.05);
+}
+
+.bi-chevron-right {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.btn-outline-secondary {
+    border-color: #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
     }
     
-    h2 {
-        font-size: 1.75rem;
+    .card-body {
+        padding: 1rem;
     }
 }
