@@ -1,71 +1,40 @@
 .disclaimer {
-    background: #f8f9fa;
-    border-left: 4px solid #dc3545;
-    font-size: 0.9rem;
-    border-radius: 4px;
-    max-width: 600px;
-    margin: 0 auto 2rem;
-    padding: 1rem;
-}
-
-.patent-badge {
-    display: inline-block;
-    background: #ffc107;
-    color: #000;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    margin-top: 5px;
+    background: #e3f2fd;
+    border-radius: 10px;
+    border: 1px solid #bbdefb;
+    max-width: 800px;
 }
 
 .card {
-    max-width: 600px;
-    margin: 0 auto;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.card-header {
-    font-weight: 600;
+    max-width: 800px;
+    margin: 20px auto;
+    border-radius: 15px;
 }
 
 #resultContainer {
-    max-width: 600px;
-    margin: 0 auto;
+    max-width: 800px;
+    margin: 20px auto;
 }
 
-.unit-toggle {
-    cursor: pointer;
-    color: #0d6efd;
-    font-size: 0.9rem;
+.display-4 {
+    font-weight: 300;
 }
 
-.unit-toggle:hover {
-    text-decoration: underline;
+.list-group-item {
+    border: none;
+    padding: 12px 20px;
 }
 
-#interpretation ul {
-    margin-bottom: 0.5rem;
-    padding-left: 1.2rem;
+.bi-check2-circle {
+    font-size: 1.2em;
 }
 
-#interpretation .alert h4 {
-    font-size: 1.1rem;
-    margin-bottom: 0.8rem;
-}
-
-#interpretation .alert .bi {
-    margin-right: 8px;
-}
-
-@media (max-width: 576px) {
-    .container {
-        padding: 1rem;
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2.5rem;
     }
     
-    .disclaimer {
-        margin-bottom: 1rem;
-        font-size: 0.8rem;
+    .card {
+        margin: 10px;
     }
 }
