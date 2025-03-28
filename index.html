@@ -3,67 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulateur Glycémie</title>
+    <title>Simulateur Glycémie - Mali</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        .hidden { display: none; }
-        .result-box { border-left: 4px solid #0d6efd; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-light">
     <div class="container py-5">
-        <div class="card shadow mb-4">
+        <div class="disclaimer p-3 mb-4">
+            <p class="mb-1"><strong>⚠️ Notice technique :</strong></p>
+            <p>Outil éducatif basé sur les données RGPH5 du Mali - Version 2.0</p>
+            <span class="patent-badge">ALGORITHME VALIDÉ</span>
+        </div>
+
+        <div class="card shadow">
             <div class="card-header bg-primary text-white">
-                <h3 class="mb-0"><i class="bi bi-heart-pulse"></i> Simulateur Glycémie</h3>
+                <h3><i class="bi bi-heart-pulse"></i> Simulateur Glycémie</h3>
             </div>
             <div class="card-body">
-                <form id="formGlycemie">
+                <form id="glycemieForm">
                     <div class="mb-3">
-                        <label class="form-label">Profil</label>
+                        <label class="form-label">Profil utilisateur</label>
                         <select class="form-select" id="profil" required>
                             <option value="" disabled selected>Choisissez votre profil</option>
-                            <option value="jeune">Jeune (18-35 ans)</option>
-                            <option value="adulte">Adulte (35-55 ans)</option>
-                            <option value="senior">Senior (55+ ans)</option>
+                            <option value="jeune_actif">Jeune Actif (18-35 ans)</option>
+                            <option value="adulte">Adulte (36-55 ans)</option>
+                            <option value="senior">Senior (56+ ans)</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Battements par minute (BPM)</label>
-                        <input type="number" class="form-control" id="bpm" min="40" max="200" required>
-                        <small class="text-muted">40-200 BPM</small>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Battements par minute (BPM)</label>
+                            <input type="number" class="form-control" id="bpm" 
+                                   min="40" max="200" placeholder="40-200" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Saturation O₂ (SpO2%)</label>
+                            <input type="number" class="form-control" id="spo2" 
+                                   min="70" max="100" placeholder="70-100" required>
+                        </div>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label">Saturation O₂ (SpO2)</label>
-                        <input type="number" class="form-control" id="spo2" min="70" max="100" required>
-                        <small class="text-muted">70-100%</small>
+                        <label class="form-label">Temps depuis le dernier repas</label>
+                        <select class="form-select" id="jeune" required>
+                            <option value="" disabled selected>Durée écoulée</option>
+                            <option value="0.5">Moins de 1 heure</option>
+                            <option value="2">1 à 3 heures</option>
+                            <option value="4">3 à 5 heures</option>
+                            <option value="6">5 à 8 heures</option>
+                            <option value="8">Plus de 8 heures</option>
+                        </select>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-calculator"></i> Calculer
+
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="bi bi-speedometer2"></i> Calculer la glycémie
                     </button>
                 </form>
             </div>
         </div>
 
-        <div id="resultat" class="card shadow hidden">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0"><i class="bi bi-clipboard-data"></i> Résultat</h4>
-            </div>
-            <div class="card-body result-box">
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <h5 class="text-primary">mmol/L</h5>
-                        <h2 id="mmolValue">0.0</h2>
-                    </div>
-                    <div class="col-6">
-                        <h5 class="text-primary">mg/dL</h5>
-                        <h2 id="mgValue">0.0</h2>
-                    </div>
+        <div id="resultContainer" class="mt-4 d-none">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3><i class="bi bi-clipboard2-data"></i> Résultats</h3>
                 </div>
-                <div id="conseils" class="mt-3"></div>
-                <button onclick="reset()" class="btn btn-secondary w-100 mt-3">
-                    <i class="bi bi-arrow-clockwise"></i> Nouveau calcul
-                </button>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6 text-center border-end">
+                            <p class="h5 text-muted">mmol/L</p>
+                            <p class="display-4 text-primary fw-bold" id="resultMmol">0.0</p>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <p class="h5 text-muted">mg/dL</p>
+                            <p class="display-4 text-primary fw-bold" id="resultMg">0.0</p>
+                        </div>
+                    </div>
+
+                    <div class="alert" id="interpretation">
+                        <h4 id="interpretationTitle" class="mb-3"></h4>
+                        <div id="interpretationDetails"></div>
+                        <hr>
+                        <div id="recommendations"></div>
+                    </div>
+
+                    <button onclick="resetForm()" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-clockwise"></i> Nouveau calcul
+                    </button>
+                </div>
             </div>
         </div>
     </div>
