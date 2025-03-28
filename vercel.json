@@ -16,6 +16,10 @@
   "headers": {
     "Content-Security-Policy": "default-src 'self' https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
     "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "env": {
+    "NODE_ENV": "production"
   }
 }
