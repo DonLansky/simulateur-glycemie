@@ -1,128 +1,116 @@
+// Coefficients optimisés pour le Mali (RGPH5)
 const coefficients = {
-    'jeune_actif': { a: 0.015, b: -0.008, c: 0.03, base: 4.2 },
-    'adulte': { a: 0.018, b: -0.006, c: 0.035, base: 4.5 },
-    'senior': { a: 0.02, b: -0.005, c: 0.04, base: 4.8 }
+    'jeune_actif': [0.072, -0.052, 0.11, 4.5],  // [bpm, spo2, jeune, base]
+    'adulte': [0.085, -0.045, 0.14, 5.0],
+    'senior': [0.093, -0.038, 0.17, 5.3]
 };
 
-const interpretations = {
-    hypoglycemie: {
-        title: 'Hypoglycémie détectée',
-        class: 'alert-danger',
-        icon: 'bi-exclamation-triangle-fill',
-        details: 'Votre estimation glycémique est inférieure aux valeurs normales.',
-        recommendations: [
-            'Consommer 15g de glucides rapides (jus, sucre)',
-            'Contrôle après 15 minutes',
-            'Éviter les activités dangereuses',
-            'Consulter un médecin si persistant'
-        ]
-    },
-    normal: {
-        title: 'Glycémie normale',
-        class: 'alert-success',
-        icon: 'bi-check-circle-fill',
-        details: 'Votre glycémie se situe dans la plage normale.',
-        recommendations: [
-            'Maintenir une alimentation équilibrée',
-            'Activité physique régulière',
-            'Contrôle annuel recommandé',
-            'Hydratation suffisante'
-        ]
-    },
-    prediabete: {
-        title: 'Niveau élevé',
-        class: 'alert-warning',
-        icon: 'bi-exclamation-octagon-fill',
-        details: 'Votre glycémie est au-dessus de la normale.',
-        recommendations: [
-            'Réduire les sucres rapides',
-            'Augmenter l\'activité physique',
-            'Consultation médicale conseillée',
-            'Surveillance régulière'
-        ]
-    },
-    diabete: {
-        title: 'Niveau critique',
-        class: 'alert-danger',
-        icon: 'bi-heartbreak-fill',
-        details: 'Nécessite une attention médicale urgente.',
-        recommendations: [
-            'Consultation IMMÉDIATE',
-            'Bilan sanguin complet',
-            'Adapter l\'alimentation',
-            'Surveillance accrue'
-        ]
+let currentUnit = 'mmol';
+let currentGlycemie = 0;
+
+function toggleUnits() {
+    currentUnit = currentUnit === 'mmol' ? 'mg' : 'mmol';
+    updateResultDisplay();
+}
+
+function updateResultDisplay() {
+    const valueElement = document.getElementById('resultValue');
+    const unitElement = document.getElementById('unitDisplay');
+    const toggleTextElement = document.getElementById('toggleUnitText');
+    
+    if (currentUnit === 'mmol') {
+        valueElement.textContent = currentGlycemie.toFixed(1);
+        unitElement.textContent = 'mmol/L';
+        toggleTextElement.textContent = 'mg/dL';
+    } else {
+        valueElement.textContent = (currentGlycemie * 18).toFixed(1);
+        unitElement.textContent = 'mg/dL';
+        toggleTextElement.textContent = 'mmol/L';
     }
-};
-
-function showError(message) {
-    alert(`Erreur : ${message}`);
+    
+    updateInterpretation();
 }
 
-function calculateGlycemia(profil, bpm, spo2, jeune) {
-    const { a, b, c, base } = coefficients[profil];
-    let result = base + (a * bpm) + (b * spo2) + (c * jeune);
-    return Math.min(result, 7.2); // Plafonnement à 7.2 mmol/L
-}
-
-function updateDisplay(glycemia) {
-    const mmol = glycemia.toFixed(1);
-    const mg = (glycemia * 18).toFixed(1);
+function updateInterpretation() {
+    const glycemie = currentUnit === 'mmol' ? currentGlycemie : currentGlycemie * 18;
+    const interpretation = getInterpretation(glycemie);
+    const recommendationsHtml = interpretation.recommendations.map(r => `<li>${r}</li>`).join('');
     
-    document.getElementById('resultMmol').textContent = mmol;
-    document.getElementById('resultMg').textContent = mg;
-
-    let interpretation;
-    if (glycemia < 3.9) interpretation = interpretations.hypoglycemie;
-    else if (glycemia <= 5.5) interpretation = interpretations.normal;
-    else if (glycemia <= 6.9) interpretation = interpretations.prediabete;
-    else interpretation = interpretations.diabete;
-
-    const interpretationEl = document.getElementById('interpretation');
-    interpretationEl.className = `alert ${interpretation.class}`;
-    
-    interpretationEl.innerHTML = `
-        <h4><i class="bi ${interpretation.icon}"></i> ${interpretation.title}</h4>
-        <p>${interpretation.details}</p>
-        <div class="mt-3">
-            <h5><i class="bi bi-lightbulb"></i> Recommandations :</h5>
-            <ul class="list-group list-group-flush">
-                ${interpretation.recommendations.map(r => `
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="bi bi-chevron-right me-2"></i>${r}
-                    </li>
-                `).join('')}
-            </ul>
+    document.getElementById('interpretation').innerHTML = `
+        <div class="alert alert-${interpretation.level}">
+            <h4><i class="bi ${interpretation.icon}"></i> ${interpretation.message}</h4>
+            <p>${interpretation.details}</p>
+            <ul class="small">${recommendationsHtml}</ul>
         </div>
     `;
+}
+
+function getInterpretation(glycemie) {
+    const value = currentUnit === 'mmol' ? glycemie : glycemie / 18;
+    
+    if (value < 3.9) return {
+        level: 'danger',
+        icon: 'bi-exclamation-triangle',
+        message: 'Hypoglycémie possible',
+        details: `Glycémie estimée très basse (${value.toFixed(1)} mmol/L / ${(value*18).toFixed(1)} mg/dL).`,
+        recommendations: [
+            'Consommer 15g de sucre rapide',
+            'Contrôler après 15 minutes',
+            'Consulter si symptômes persistent'
+        ]
+    };
+    
+    if (value <= 5.5) return {
+        level: 'success',
+        icon: 'bi-check-circle',
+        message: 'Glycémie normale',
+        details: `Dans la plage normale (${value.toFixed(1)} mmol/L / ${(value*18).toFixed(1)} mg/dL).`,
+        recommendations: [
+            'Maintenir habitudes saines',
+            'Activité physique régulière'
+        ]
+    };
+    
+    if (value <= 6.9) return {
+        level: 'warning',
+        icon: 'bi-exclamation-circle',
+        message: 'Pré-diabète possible',
+        details: `Niveau élevé (${value.toFixed(1)} mmol/L / ${(value*18).toFixed(1)} mg/dL).`,
+        recommendations: [
+            'Surveiller alimentation',
+            'Consulter un médecin'
+        ]
+    };
+    
+    return {
+        level: 'danger',
+        icon: 'bi-heart-pulse',
+        message: 'Diabète probable',
+        details: `Niveau très élevé (${value.toFixed(1)} mmol/L / ${(value*18).toFixed(1)} mg/dL).`,
+        recommendations: [
+            'Consultation médicale urgente',
+            'Bilan sanguin complet'
+        ]
+    };
 }
 
 document.getElementById('glycemieForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
+    const bpm = parseFloat(document.getElementById('bpm').value);
+    const spo2 = parseFloat(document.getElementById('spo2').value);
+    const jeune = parseFloat(document.getElementById('jeune').value);
     const profil = document.getElementById('profil').value;
-    const bpm = document.getElementById('bpm').value;
-    const spo2 = document.getElementById('spo2').value;
-    const jeune = document.getElementById('jeune').value;
-
-    if (!profil || !bpm || !spo2 || !jeune) {
-        showError('Veuillez remplir tous les champs du formulaire');
-        return;
-    }
-
-    const glycemia = calculateGlycemia(
-        profil,
-        parseFloat(bpm),
-        parseFloat(spo2),
-        parseFloat(jeune)
-    );
-
+    
+    const [a, b, c, d] = coefficients[profil];
+    currentGlycemie = (a * bpm) + (b * spo2) + (c * jeune) + d;
+    
     document.getElementById('profilUsed').textContent = 
-        document.getElementById('profil').selectedOptions[0].text;
-
-    updateDisplay(glycemia);
+        document.getElementById('profil').options[document.getElementById('profil').selectedIndex].text;
+    
+    updateResultDisplay();
     document.getElementById('resultContainer').classList.remove('d-none');
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
 });
 
 function resetForm() {
