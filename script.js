@@ -1,18 +1,24 @@
 const coefficients = {
-    'jeune_actif': { base: 4.8, bpm: 0.025, spo2: -0.03, repas: 0.12 },
-    'adulte': { base: 5.2, bpm: 0.03, spo2: -0.04, repas: 0.15 },
-    'senior': { base: 5.6, bpm: 0.035, spo2: -0.05, repas: 0.18 }
+    'jeune_actif': { base: 4.8, bpm: 0.015, spo2: -0.02, repas: 0.08 },
+    'adulte': { base: 5.2, bpm: 0.018, spo2: -0.025, repas: 0.10 },
+    'senior': { base: 5.6, bpm: 0.022, spo2: -0.03, repas: 0.12 }
 };
 
+// Modifier la fonction calculGlycemie
 function calculGlycemie(profil, bpm, spo2, repas) {
     const coeff = coefficients[profil];
-    let valeur = coeff.base + 
-                (bpm * coeff.bpm) + 
-                ((100 - spo2) * coeff.spo2) + 
-                (repas * coeff.repas);
     
-    // Limiter à 7 mmol/L (126 mg/dL)
-    return Math.min(7, Math.max(3.5, valeur));
+    // Facteur aléatoire raisonnable (±0.3 mmol/L)
+    const randomFactor = (Math.random() * 0.6) - 0.3;
+    
+    let valeur = coeff.base + 
+                (bpm * coeff.bpm * 0.1) +  // Réduire l'impact du BPM
+                ((100 - spo2) * coeff.spo2 * 0.2) +  // Ajuster l'effet SpO2
+                (repas * coeff.repas * 0.3) +  // Modérer l'effet temporel
+                randomFactor;
+
+    // Garder une fourchette réaliste 4.4-7.1 mmol/L
+    return Math.min(7.1, Math.max(4.4, valeur));
 }
 
 function getConseils(glycemie) {
